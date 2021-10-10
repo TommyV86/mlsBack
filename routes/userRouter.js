@@ -7,7 +7,6 @@ const nodemailer = require('nodemailer')
 const objectId = require('mongodb')
 const { v1: uuidv1, v4: uuidv4 } = require('uuid');
 
-
 const port = http.createServer(app).listen(8080)
 const uri = bdd.dbURI
 const dbName = 'mls';
@@ -34,18 +33,22 @@ app.use(cors())
 // nécessaire pour le retour des données en json
 app.use(express.json())
 
-
 // routes part
+
 app.post('/signup', async req => {
     //les variables font office d'objet user
-    let {firstName, lastName, email, password, token} = req.body
+    let {firstName, lastName, email, token} = req.body
+
+    let pswd = req.body.passwordHash
+    let salt = crypto.randomBytes(16).toString('hex')
+    let pswdHash = crypto.createHmac('sha256', pswd).update(salt).digest('hex')
 
     try {
         await db.collection('User').insertOne({
             firstName: firstName, 
             lastName: lastName, 
             email: email, 
-            password: password, 
+            password: pswdHash, 
             token: token
         })
         console.log(' *** user inserted *** ')
@@ -147,8 +150,8 @@ app.post('/password', async req => {
             // console.log("db user mail : " + userMail.email)
 
             // identifiants d'expediteur provisoire
-            let sendMailer = 'mlsmail59000@gmail.com'
-            let passwordMailer = 'mls123456'
+            let sendMailer = ''
+            let passwordMailer = ''
 
 
             // creation de l'expediteur

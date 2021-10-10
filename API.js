@@ -36,20 +36,24 @@ app.use(express.json())
 
 
 
-// ------------------user routers------------------//
+//------------------user routers------------------//
 
 
 
-app.post('/signup', async req => {
+app.post('/signin', async req => {
     //les variables font office d'objet user
     let {firstName, lastName, email, password, token} = req.body
+
+    let pswd = req.body.passwordHash
+    let salt = crypto.randomBytes(16).toString('hex')
+    let pswdHash = crypto.createHmac('sha256', pswd).update(salt).digest('hex')
 
     try {
         await db.collection('User').insertOne({
             firstName: firstName, 
             lastName: lastName, 
             email: email, 
-            password: password, 
+            password: pswdHash, 
             token: token
         })
         console.log(' *** user inserted *** ')
@@ -143,8 +147,8 @@ app.post('/password', async req => {
             db.collection('User').updateOne({ email: currentMail }, { $set: {token: uniqueCodev4} })
 
             // identifiants d'expediteur provisoire
-            let sendMailer = 'mlsmail59000@gmail.com'
-            let passwordMailer = 'mls123456'
+            let sendMailer = ''
+            let passwordMailer = ''
 
 
             // creation de l'expediteur
